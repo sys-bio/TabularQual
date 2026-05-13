@@ -131,15 +131,13 @@ The spreadsheet consists of up to four sheets. Sheet names and column headers mu
 
 Additional sheets (e.g. README, Appendix) and columns are silently ignored.
 
-**Model_ID fallback**: if the Model sheet is absent or its `Model_ID` cell is empty, the converter uses the input filename stem (e.g. `MyModel.xlsx` → `MyModel`).
-
-See the [template spreadsheet](doc/template.xlsx) and [examples/](examples/) for concrete file layouts.
+See the [specification](https://docs.google.com/document/d/1RCIN4bOsw4Uq9X2I-gdfBXDydyViYzaVhQK8cpdEWhA/edit?usp=sharing), the [template spreadsheet](doc/template.xlsx) and [examples/](examples/) for details.
 
 ---
 
 ### Transition Rules Syntax
 
-The `Rule` column accepts Boolean and comparison expressions; spaces are ignored during parsing.
+The `Rule` column accepts Boolean and comparison expressions; spaces are ignored during parsing. See [doc/transition_rule_syntax.md](doc/transition_rule_syntax.md) for full details including operator precedence and multi-valued model conventions.
 
 | Symbol | Meaning | Example |
 |--------|---------|---------|
@@ -227,7 +225,7 @@ All values are accepted case-insensitively and normalised to their canonical for
 
 #### Annotation identifiers
 
-Compact identifiers (`prefix:accession`, e.g. `uniprot:P19838`) are resolved to `https://identifiers.org/` URLs in SBML. Optionally validate that identifiers actually exist:
+Compact identifiers (`prefix:accession`, e.g. `uniprot:P19838`) are resolved to `https://identifiers.org/` URLs in SBML. Optionally validate that identifiers actually exist through `sbmlutils`:
 
 ```bash
 pip install sbmlutils>=0.9.6

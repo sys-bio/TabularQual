@@ -15,18 +15,34 @@ The **Rule** column in the Transitions sheet defines when a target species becom
 
 Use parentheses `()` to override precedence.
 
+### Operator Precedence
+
+Higher-precedence operators bind more tightly. Comparison operators (`>=`, `<`, etc.) bind tightest and form atomic terms; then NOT, AND, XOR, OR from high to low. All binary operators are **left-associative**, so chains of the same operator group left-to-right.
+
+| Expression         | Parsed as            |
+| ------------------ | -------------------- |
+| `A & B \| C`      | `(A & B) \| C`      |
+| `A \| B & C`      | `A \| (B & C)`      |
+| `A ^ B & C`       | `A ^ (B & C)`       |
+| `A & B ^ C \| D`  | `((A & B) ^ C) \| D` |
+| `!A & B`          | `(!A) & B`          |
+| `A >= 2 & B`      | `(A >= 2) & B`      |
+| `A & B & C`       | `(A & B) & C`       |
+
+When in doubt, use parentheses: `(A & B) | C` is always unambiguous.
+
 ### Comparison Operators
 
 Used in multi-valued models where species levels can exceed 1:
 
-| Operator | Example    | Meaning                        |
-| -------- | ---------- | ------------------------------ |
-| `>=`   | `A >= 2` | level of A is at least 2       |
-| `>`    | `A > 1`  | level of A is strictly above 1 |
-| `<`    | `A < 2`  | level of A is below 2          |
-| `<=`   | `A <= 1` | level of A is at most 1        |
-| `==`   | `A == 2` | level of A is exactly 2        |
-| `!=`   | `A != 0` | level of A is not 0            |
+| Operator    | Example    | Meaning                        |
+| ----------- | ---------- | ------------------------------ |
+| `>=`      | `A >= 2` | level of A is at least 2       |
+| `>`       | `A > 1`  | level of A is strictly above 1 |
+| `<`       | `A < 2`  | level of A is below 2          |
+| `<=`      | `A <= 1` | level of A is at most 1        |
+| `=`, `==` | `A == 2` | level of A is exactly 2        |
+| `!=`      | `A != 0` | level of A is not 0            |
 
 ### Constants
 
@@ -38,7 +54,7 @@ Used in multi-valued models where species levels can exceed 1:
 
 ## Compact Colon Notation
 
-An alternative compact format, selected with `--colon-format`:
+An alternative compact format for threshold expressions. Colon notation is always accepted as input; the `--colon-format` flag controls whether the tool *outputs* colon notation (instead of `>=`/`<`) when converting SBML to a spreadsheet.
 
 | Colon    | Operator equivalent       |
 | -------- | ------------------------- |
@@ -118,7 +134,7 @@ In TabularQual converter:
 
 1. **Collects threshold mappings**: For each input in a transition, the tool maps the input's `id` attribute to its `thresholdLevel` value (e.g., `theta_t9_ex` → `1` from the example below).
 2. **Substitutes in MathML**: When converting the MathML expression, any `<ci>` referencing an input `id` (rather than a species) is replaced with the numeric threshold value.
-3. **Simplifies for Boolean**: Comparisons against 0 or 1 are simplified sincel Boolean models can only take 0 or 1:
+3. **Simplifies for Boolean**: Comparisons against 0 or 1 are simplified since Boolean models can only take 0 or 1:
 
 | Expression              | Simplified | Reasoning                 |
 | ----------------------- | ---------- | ------------------------- |
