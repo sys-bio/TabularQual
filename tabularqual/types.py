@@ -43,6 +43,7 @@ class Species:
     # list of (qualifier, identifier)
     annotations: List[Tuple[str, str]] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
+    comments: Optional[str] = None
 
 
 @dataclass
@@ -52,6 +53,7 @@ class InteractionEvidence:
     sign: Optional[str] = None
     annotations: List[Tuple[str, str]] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
+    comments: Optional[str] = None
 
 
 @dataclass
@@ -63,6 +65,7 @@ class Transition:
     rule: str  # boolean expression string
     annotations: List[Tuple[str, str]] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
+    comments: Optional[str] = None
 
 
 @dataclass

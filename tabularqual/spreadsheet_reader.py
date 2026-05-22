@@ -980,12 +980,13 @@ def read_spreadsheet_to_model(xlsx_path: str, use_name: bool = False) -> tuple[Q
             type=normalized_species_type,
             annotations=_collect_qualifier_pairs(rowd, spec.SPECIES_RELATION_PREFIX, spec.SPECIES_IDENTIFIER_PREFIX, validation_warnings, f"Species '{sid}' (row {species_row_num})"),
             notes=_collect_repeated_columns(rowd, spec.SPECIES_NOTES_PREFIX),
+            comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
         )
         species[sid] = sp
         species_row_num += 1
-    
+
     validation_warnings.append(f"Found {len(species)} species")
-    
+
     # Transitions sheet
     if spec.SHEET_TRANSITIONS not in sheetnames:
         raise ValueError(f"Missing required sheet: {spec.SHEET_TRANSITIONS}")
@@ -1040,10 +1041,11 @@ def read_spreadsheet_to_model(xlsx_path: str, use_name: bool = False) -> tuple[Q
                 rule=rule,
                 annotations=_collect_qualifier_pairs(rowd, spec.TRANSITION_RELATION_PREFIX, spec.TRANSITION_IDENTIFIER_PREFIX, validation_warnings, f"Transition '{target}' (row {trans_row_num})"),
                 notes=_collect_repeated_columns(rowd, spec.TRANSITION_NOTES_PREFIX),
+                comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
             )
         )
         trans_row_num += 1
-    
+
     validation_warnings.append(f"Found {len(transitions)} transitions")
 
     # Interactions sheet: optional
@@ -1090,6 +1092,7 @@ def read_spreadsheet_to_model(xlsx_path: str, use_name: bool = False) -> tuple[Q
                     sign=normalized_sign,
                     annotations=_collect_qualifier_pairs(rowd, spec.INTER_RELATION_PREFIX, spec.INTER_IDENTIFIER_PREFIX, validation_warnings, f"Interaction '{source}→{target}' (row {inter_row_num})"),
                     notes=_collect_repeated_columns(rowd, spec.INTER_NOTES_PREFIX),
+                    comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
                 )
             )
             inter_row_num += 1
@@ -1348,12 +1351,13 @@ def read_csv_to_model(csv_files: dict[str, str], use_name: bool = False) -> tupl
             type=normalized_species_type,
             annotations=_collect_qualifier_pairs(rowd, spec.SPECIES_RELATION_PREFIX, spec.SPECIES_IDENTIFIER_PREFIX, validation_warnings, f"Species '{sid}' (row {species_row_num})"),
             notes=_collect_repeated_columns(rowd, spec.SPECIES_NOTES_PREFIX),
+            comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
         )
         species[sid] = sp
         species_row_num += 1
-    
+
     validation_warnings.append(f"Found {len(species)} species")
-    
+
     # Validate names when use_name=True
     if use_name:
         missing_names = [sid for sid, sp in species.items() if not sp.name]
@@ -1414,12 +1418,13 @@ def read_csv_to_model(csv_files: dict[str, str], use_name: bool = False) -> tupl
                 rule=rule,
                 annotations=_collect_qualifier_pairs(rowd, spec.TRANSITION_RELATION_PREFIX, spec.TRANSITION_IDENTIFIER_PREFIX, validation_warnings, f"Transition '{target}' (row {trans_row_num})"),
                 notes=_collect_repeated_columns(rowd, spec.TRANSITION_NOTES_PREFIX),
+                comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
             )
         )
         trans_row_num += 1
-    
+
     validation_warnings.append(f"Found {len(transitions)} transitions")
-    
+
     # Interactions CSV (optional)
     interactions: List[InteractionEvidence] = []
     if 'Interactions' in csv_files:
@@ -1462,6 +1467,7 @@ def read_csv_to_model(csv_files: dict[str, str], use_name: bool = False) -> tupl
                     sign=normalized_sign,
                     annotations=_collect_qualifier_pairs(rowd, spec.INTER_RELATION_PREFIX, spec.INTER_IDENTIFIER_PREFIX, validation_warnings, f"Interaction '{source}→{target}' (row {inter_row_num})"),
                     notes=_collect_repeated_columns(rowd, spec.INTER_NOTES_PREFIX),
+                    comments=str(rowd.get(spec.COMMENTS_COL) or "").strip() or None,
                 )
             )
             inter_row_num += 1

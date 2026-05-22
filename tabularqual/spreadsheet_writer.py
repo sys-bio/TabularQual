@@ -434,9 +434,10 @@ def _write_species_sheet(wb: openpyxl.Workbook, model: QualModel, position: int 
                 ws.cell(row=row_idx, column=col, value=species.notes[i])
             col += 1
         
-        # Comments (skip)
+        # Comments
+        ws.cell(row=row_idx, column=col, value=species.comments or "")
         col += 1
-    
+
     # Adjust column widths
     ws.column_dimensions['A'].width = 15
     ws.column_dimensions['B'].width = 30
@@ -545,8 +546,9 @@ def _write_transitions_sheet(wb: openpyxl.Workbook, model: QualModel, position: 
             col += 1
         
         # Comments
+        ws.cell(row=row_idx, column=col, value=transition.comments or "")
         col += 1
-    
+
     # Adjust column widths
     ws.column_dimensions['A'].width = 15
     ws.column_dimensions['C'].width = 15
@@ -640,8 +642,9 @@ def _write_interactions_sheet(wb: openpyxl.Workbook, model: QualModel, position:
             col += 1
         
         # Comments
+        ws.cell(row=row_idx, column=col, value=interaction.comments or "")
         col += 1
-    
+
     # Adjust column widths
     ws.column_dimensions['A'].width = 15
     ws.column_dimensions['B'].width = 15
@@ -936,9 +939,9 @@ def _write_species_csv(model: QualModel, output_path: str, use_name: bool = Fals
         for i in range(max_notes):
             row.append(species.notes[i] if i < len(species.notes) else "")
         
-        row.append("")  # Comments
+        row.append(species.comments or "")
         rows.append(row)
-    
+
     with open(output_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(rows)
@@ -1009,9 +1012,9 @@ def _write_transitions_csv(model: QualModel, output_path: str, rule_format: str 
         for i in range(max_notes):
             row.append(transition.notes[i] if i < len(transition.notes) else "")
         
-        row.append("")  # Comments
+        row.append(transition.comments or "")
         rows.append(row)
-    
+
     with open(output_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(rows)
@@ -1074,9 +1077,9 @@ def _write_interactions_csv(model: QualModel, output_path: str, use_name: bool =
         for i in range(max_notes):
             row.append(interaction.notes[i] if i < len(interaction.notes) else "")
         
-        row.append("")  # Comments
+        row.append(interaction.comments or "")
         rows.append(row)
-    
+
     with open(output_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(rows)

@@ -35,6 +35,7 @@ SPECIES_CONSTANT = "Constant"
 SPECIES_INITIAL_LEVEL = "InitialLevel"
 SPECIES_MAX_LEVEL = "MaxLevel"
 SPECIES_NOTES_PREFIX = "Notes"
+COMMENTS_COL = "Comments"
 
 # Interactions sheet columns (optional)
 INTER_TARGET = "Target"
