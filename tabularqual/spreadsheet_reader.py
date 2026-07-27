@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 import csv
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 from pathlib import Path
 from openpyxl import load_workbook
 import warnings
@@ -88,7 +88,7 @@ def _prepare_name_for_rule(name: str, is_valid_sid: bool, is_unique: bool, name_
     return f'"{name}"'
 
 
-def _resolve_id_to_name(id_or_name: str, species: Dict[str, Species], name_to_id: Dict[str, str], name_counts: Dict[str, int], name_occurrence_map: Dict[str, Dict[int, str]] = None) -> str:
+def _resolve_id_to_name(id_or_name: str, species: Dict[str, Species], name_to_id: Dict[str, str], name_counts: Dict[str, int], name_occurrence_map: Dict[str, Dict[int, str]] | None = None) -> str:
     """Resolve an ID or name to a name (with suffix and/or quotes if needed) for use in rules/interactions.
     
     Args:
@@ -202,7 +202,6 @@ def _resolve_with_fallback(ref: str, species: Dict[str, Species], name_to_id: Di
     """
     # Strip quotes if present (quoted names from spreadsheet)
     ref_clean = ref.strip('"\'')
-    has_quotes = ref != ref_clean
     
     # Try current mode first (use cleaned reference for checking, but preserve quotes in result if needed)
     if use_name:
@@ -434,7 +433,7 @@ def _resolve_rule_with_fallback(rule: str, species: Dict[str, Species], name_to_
     return result, actual_use_name
 
 
-def _resolve_rule_to_names(rule: str, species: Dict[str, Species], name_to_id: Dict[str, str], name_counts: Dict[str, int], name_occurrence_map: Dict[str, Dict[int, str]] = None) -> str:
+def _resolve_rule_to_names(rule: str, species: Dict[str, Species], name_to_id: Dict[str, str], name_counts: Dict[str, int], name_occurrence_map: Dict[str, Dict[int, str]] | None = None) -> str:
     """Resolve species IDs in a rule to names (with quotes if needed).
     
     Args:
@@ -451,6 +450,7 @@ def _resolve_rule_to_names(rule: str, species: Dict[str, Species], name_to_id: D
     species_ids = sorted(species.keys(), key=len, reverse=True)
     
     result = rule
+    name_occurrence_map = name_occurrence_map or {}
     # Replace each species ID with its name
     for sid in species_ids:
         sp = species[sid]
@@ -639,7 +639,7 @@ def detect_csv_input(input_path: str) -> tuple[bool, dict[str, str], list[str]]:
 def _normalize_header(header: str) -> str:
     return header.strip()
 
-def _row_to_dict(headers: List[str], row_values: List[object]) -> Dict[str, object]:
+def _row_to_dict(headers: List[str], row_values: Sequence[object]) -> Dict[str, object]:
     return {headers[i]: (row_values[i] if i < len(row_values) else None) for i in range(len(headers))}
 
 def _collect_repeated_columns(row: Dict[str, object], prefix: str) -> List[str]:
@@ -672,7 +672,7 @@ def _collect_repeated_columns(row: Dict[str, object], prefix: str) -> List[str]:
                 values.append(value_str)
     return values
 
-def _collect_qualifier_pairs(row: Dict[str, object], relation_prefix: str, identifier_prefix: str, validation_warnings: List[str] = None, context: str = "") -> List[Tuple[str, str]]:
+def _collect_qualifier_pairs(row: Dict[str, object], relation_prefix: str, identifier_prefix: str, validation_warnings: List[str] | None = None, context: str = "") -> List[Tuple[str, str]]:
     relations = []
     identifiers = []
     for key, value in row.items():
@@ -687,8 +687,6 @@ def _collect_qualifier_pairs(row: Dict[str, object], relation_prefix: str, ident
     # Sort by numeric suffix to align pairs
     def sort_key(item: Tuple[str, str]) -> int:
         name = item[0]
-        suffix = name[len(name.rstrip("0123456789")):]  # fallback
-        # Better: strip prefix explicitly
         return int(''.join(ch for ch in name if ch.isdigit()) or 0)
 
     relations.sort(key=sort_key)

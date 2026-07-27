@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Set, Optional
+from typing import List, Set, Optional
 
 
 class Token:
@@ -166,10 +166,9 @@ def parse(expr: str, species_ids: Optional[Set[str]] = None):
     """
     tokens = tokenize(expr, species_ids)
     pos = 0
-    paren_stack = []  # Track parentheses for better error messages
+    paren_stack: list[int] = []  # Track parentheses for better error messages
 
     def peek() -> Token | None:
-        nonlocal pos
         return tokens[pos] if pos < len(tokens) else None
 
     def consume(kind: str | None = None) -> Token:
@@ -313,8 +312,9 @@ def parse(expr: str, species_ids: Optional[Set[str]] = None):
         return node
 
     ast = parse_expr()
-    if peek() is not None:
-        raise ValueError(f"Unexpected trailing tokens: {peek().kind} for expression: {expr}")
+    trailing = peek()
+    if trailing is not None:
+        raise ValueError(f"Unexpected trailing tokens: {trailing.kind} for expression: {expr}")
     return ast
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Dict, Optional
+from typing import Any, List, Tuple, Dict
 import html
 import libsbml
 from xml.etree import ElementTree as ET
@@ -576,9 +576,9 @@ def _mathml_to_rule(math_ast, inputs_with_signs, input_thresholds=None, species_
     return result
 
 
-def _parse_rdf_annotation(anno_str: str) -> Dict[str, List]:
+def _parse_rdf_annotation(anno_str: str) -> Dict[str, List[Any]]:
     """Parse RDF annotation string into a dictionary"""
-    result = {}
+    result: Dict[str, List[Any]] = {}
     
     try:
         # Parse XML
@@ -768,4 +768,3 @@ def _extract_text_from_notes(notes_str: str, filter_level_prefix: bool = False) 
                 notes.append(line)
     
     return [html.unescape(note) for note in notes]
-

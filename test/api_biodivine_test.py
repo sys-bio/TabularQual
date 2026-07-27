@@ -2,7 +2,9 @@ import requests
 import os
 import time
 import csv
-import json
+
+# This is a manual remote benchmark script, not a pytest test module.
+__test__ = False
 
 # Configuration
 BASE_URL = "https://tabularqual.onrender.com"

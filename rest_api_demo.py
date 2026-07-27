@@ -1,5 +1,4 @@
 import requests
-import json
 import os
 
 BASE_URL = "https://tabularqual.onrender.com"

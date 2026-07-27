@@ -6,7 +6,6 @@ python-dateutil>=2.9.0
 streamlit>=1.28.0
 pandas>=2.0.0
 sbmlutils>=0.9.6
-# # API dependencies
-# fastapi
-# uvicorn
-# python-multipart
+fastapi>=0.115.0
+uvicorn>=0.34.0
+python-multipart>=0.0.20

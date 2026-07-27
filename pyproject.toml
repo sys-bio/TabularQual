@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,9 @@ dynamic = ["version"]
 description = "Converter for logical models: spreadsheets (XLSX, CSV) <--> SBML-qual."
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["SBML", "SBML-qual", "logical models", "systems biology", "spreadsheet"]
 dependencies = [
     "python-libsbml>=5.21.0",
     "openpyxl>=3.1.5",
@@ -22,12 +24,53 @@ dependencies = [
 authors = [
     {name = "Luna Li", email = "lixy@uw.edu"},
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.115.0",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.34.0",
+]
+test = [
+    "flake8>=7.2.0",
+    "httpx>=0.28.0",
+    "mypy>=1.15.0",
+    "pytest>=8.3.0",
+]
+release = [
+    "build>=1.2.2",
+    "check-wheel-contents>=0.6.1",
+    "twine>=6.2.0",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "tabularqual.spec.VERSION"}
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["tabularqual*"]
+exclude = ["test*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+tabularqual = ["data/*.xlsx"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["tabularqual"]
+ignore_missing_imports = true
+check_untyped_defs = true
 
 [project.scripts]
 to-sbml = "tabularqual.cli:to_sbml_entry"
@@ -35,3 +78,5 @@ to-table = "tabularqual.cli:to_table_entry"
 
 [project.urls]
 Homepage = "https://github.com/sys-bio/TabularQual"
+Documentation = "https://github.com/sys-bio/TabularQual#readme"
+Issues = "https://github.com/sys-bio/TabularQual/issues"

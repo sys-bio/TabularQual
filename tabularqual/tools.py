@@ -5,7 +5,9 @@ RDF_TAG_ITEM = ['rdf:RDF',
 RDF_TAG = ' '.join(RDF_TAG_ITEM)
 
 import re
-import libsbml
+from typing import TypedDict
+
+from .identifiers import to_identifiers_url
 
 
 # SId validation regex pattern (SBML Level 3 Version 2 specification)
@@ -129,7 +131,7 @@ def validate_and_clean_sid(identifier: str, field_name: str, context: str = "") 
     Returns:
         tuple: (final_id, list of warning messages)
     """
-    warnings = []
+    warnings: list[str] = []
     
     if not identifier:
         return identifier, warnings
@@ -239,7 +241,7 @@ def createAnnotationContainer(items):
   -------
   list-str
   """
-  container =[]
+  container: list[str] = []
   for one_item in items:
     one_t = createTag(one_item)
     container = insertList(insert_from=one_t,
@@ -393,7 +395,7 @@ def validate_identifier(identifier: str) -> dict:
         return {
             'is_valid': True,
             'type': 'url',
-            'uri': s,
+            'uri': to_identifiers_url(s),
             'original': identifier
         }
     
@@ -402,7 +404,7 @@ def validate_identifier(identifier: str) -> dict:
         return {
             'is_valid': True,
             'type': 'urn',
-            'uri': s,
+            'uri': to_identifiers_url(s),
             'original': identifier
         }
     
@@ -411,7 +413,7 @@ def validate_identifier(identifier: str) -> dict:
         return {
             'is_valid': True,
             'type': 'doi',
-            'uri': s,
+            'uri': to_identifiers_url(s),
             'original': identifier
         }
     
@@ -431,7 +433,7 @@ def validate_identifier(identifier: str) -> dict:
                 return {
                     'is_valid': True,
                     'type': 'compact_identifier',
-                    'uri': f"https://identifiers.org/{s}",
+                    'uri': to_identifiers_url(s),
                     'original': identifier,
                     'prefix': prefix,
                     'accession': accession
@@ -456,13 +458,24 @@ def validate_identifier(identifier: str) -> dict:
     return {
         'is_valid': True,
         'type': 'assumed_compact',
-        'uri': f"https://identifiers.org/{s}",
+        'uri': to_identifiers_url(s),
         'original': identifier,
         'warning': 'No colon found, assuming compact identifier'
     }
 
 
-def validate_sbml_file(sbml_path: str, max_errors: int = 10, print_messages: bool = True) -> dict:
+class ValidationResult(TypedDict):
+    warnings: list[str]
+    errors: list[str]
+    total_errors: int
+    validation_run: bool
+
+
+def validate_sbml_file(
+    sbml_path: str,
+    max_errors: int | None = 10,
+    print_messages: bool = True,
+) -> ValidationResult:
     """Validate SBML annotations using sbmlutils.
     
     Args:
@@ -481,7 +494,7 @@ def validate_sbml_file(sbml_path: str, max_errors: int = 10, print_messages: boo
     import sys
     import os
     
-    result = {
+    result: ValidationResult = {
         'warnings': [],
         'errors': [],
         'total_errors': 0,
@@ -530,7 +543,6 @@ def validate_sbml_file(sbml_path: str, max_errors: int = 10, print_messages: boo
         # Print our own formatted output
         if print_messages:
             print(f"\nAnnotation validation: {result['total_errors']} invalid annotation(s) found.")
-            display_count = len(result['errors'])
             for i, error in enumerate(result['errors']):
                 print(f"  {i+1}. {error}")
             if max_errors is not None and result['total_errors'] > max_errors:

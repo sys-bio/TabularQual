@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 import csv
 import openpyxl
 from openpyxl.styles import Font, PatternFill
@@ -10,6 +10,7 @@ import shutil
 from .types import QualModel, Person
 from . import spec
 from .tools import is_valid_sid
+from .identifiers import url_to_compact_identifier
 
 
 def _build_name_deduplication_map(species: Dict[str, Any]) -> Dict[str, str]:
@@ -18,9 +19,9 @@ def _build_name_deduplication_map(species: Dict[str, Any]) -> Dict[str, str]:
     Returns:
         Dict mapping (species_id, original_name) to suffixed name (e.g., "Name_1", "Name_2")
     """
-    name_counts = {}
-    name_occurrence_map = {}
-    name_current_count = {}
+    name_counts: Dict[str, int] = {}
+    name_occurrence_map: Dict[str, str] = {}
+    name_current_count: Dict[str, int] = {}
     
     # First pass: count name occurrences
     for sp in species.values():
@@ -49,7 +50,7 @@ def _build_name_deduplication_map(species: Dict[str, Any]) -> Dict[str, str]:
 
 
 def _resolve_id_to_name_for_output(sid: str, species: Dict[str, Any], use_name: bool, 
-                                   name_dedup_map: Dict[str, str] = None) -> str:
+                                   name_dedup_map: Dict[str, str] | None = None) -> str:
     """Resolve a species ID to Name for output when use_name=True.
     
     Args:
@@ -87,7 +88,7 @@ def _resolve_id_to_name_for_output(sid: str, species: Dict[str, Any], use_name: 
 
 
 def _resolve_rule_ids_to_names(rule: str, species: Dict[str, Any], use_name: bool,
-                               name_dedup_map: Dict[str, str] = None) -> str:
+                               name_dedup_map: Dict[str, str] | None = None) -> str:
     """Resolve species IDs in a rule to Names when use_name=True.
     
     Args:
@@ -137,7 +138,7 @@ def check_xlsx_rule_overflow(model: QualModel) -> list[tuple[str, str, int]]:
     return overflows
 
 
-def write_spreadsheet(model: QualModel, output_path: str, template_path: str = None, rule_format: str = "operators", use_name: bool = False) -> tuple[str, list[str]]:
+def write_spreadsheet(model: QualModel, output_path: str, template_path: str | None = None, rule_format: str = "operators", use_name: bool = False) -> tuple[str, list[str]]:
     """Write QualModel to spreadsheet format.
 
     Returns:
@@ -319,7 +320,7 @@ def _write_model_sheet(wb: openpyxl.Workbook, model: QualModel, position: int = 
 
 
 def _write_species_sheet(wb: openpyxl.Workbook, model: QualModel, position: int = 0, 
-                         use_name: bool = False, name_dedup_map: Dict[str, str] = None):
+                         use_name: bool = False, name_dedup_map: Dict[str, str] | None = None):
     """Write Species sheet
     
     Args:
@@ -338,7 +339,7 @@ def _write_species_sheet(wb: openpyxl.Workbook, model: QualModel, position: int 
     max_notes = 0
     for species in model.species.values():
         # Group by qualifier
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in species.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -383,15 +384,16 @@ def _write_species_sheet(wb: openpyxl.Workbook, model: QualModel, position: int 
         col += 1
         
         # Name - use deduplicated version if use_name=True
+        name_value: str | None
         if use_name and species.name:
-            name_value = name_dedup_map.get(species.species_id, species.name.strip())
+            name_value = (name_dedup_map or {}).get(species.species_id, species.name.strip())
         else:
             name_value = species.name.strip() if species.name else None
         ws.cell(row=row_idx, column=col, value=name_value)
         col += 1
         
         # Annotations - group by qualifier and combine identifiers
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in species.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []
@@ -445,7 +447,7 @@ def _write_species_sheet(wb: openpyxl.Workbook, model: QualModel, position: int 
 
 def _write_transitions_sheet(wb: openpyxl.Workbook, model: QualModel, position: int = 0,
                              rule_format: str = "operators", use_name: bool = False,
-                             name_dedup_map: Dict[str, str] = None):
+                             name_dedup_map: Dict[str, str] | None = None):
     """Write Transitions sheet"""
     ws = wb.create_sheet("Transitions", position)
     
@@ -459,7 +461,7 @@ def _write_transitions_sheet(wb: openpyxl.Workbook, model: QualModel, position: 
     max_notes = 0
     for transition in model.transitions:
         # Group by qualifier
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in transition.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -525,7 +527,7 @@ def _write_transitions_sheet(wb: openpyxl.Workbook, model: QualModel, position: 
         col += 1
         
         # Annotations - group by qualifier and combine identifiers
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in transition.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []
@@ -556,7 +558,7 @@ def _write_transitions_sheet(wb: openpyxl.Workbook, model: QualModel, position: 
 
 
 def _write_interactions_sheet(wb: openpyxl.Workbook, model: QualModel, position: int = 0, 
-                              use_name: bool = False, name_dedup_map: Dict[str, str] = None):
+                              use_name: bool = False, name_dedup_map: Dict[str, str] | None = None):
     """Write Interactions sheet"""
     # Always create the sheet, even if no interactions
     ws = wb.create_sheet("Interactions", position)
@@ -570,7 +572,7 @@ def _write_interactions_sheet(wb: openpyxl.Workbook, model: QualModel, position:
     max_notes = 0
     for interaction in model.interactions:
         # Group by qualifier
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in interaction.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -621,7 +623,7 @@ def _write_interactions_sheet(wb: openpyxl.Workbook, model: QualModel, position:
         col += 1
         
         # Annotations - group by qualifier and combine identifiers
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in interaction.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []
@@ -659,23 +661,7 @@ def _url_to_compact_id(url: str) -> str:
     - urn:miriam:ncbigene:596 -> ncbigene:596
     - Other URLs are kept as-is
     """
-    # Handle identifiers.org URLs
-    if "identifiers.org/" in url:
-        # Extract the part after identifiers.org/
-        parts = url.split("identifiers.org/")
-        if len(parts) > 1:
-            compact_id = parts[1]
-            # Convert slash to colon if present (e.g., ncbigene/7132 -> ncbigene:7132)
-            # Only convert the first slash to maintain compatibility with nested identifiers
-            if "/" in compact_id and ":" not in compact_id:
-                compact_id = compact_id.replace("/", ":", 1)
-            return compact_id
-    
-    # Handle urn:miriam: format (e.g., urn:miriam:ncbigene:596 -> ncbigene:596)
-    if url.startswith("urn:miriam:"):
-        return url[len("urn:miriam:"):]
-    
-    return url
+    return url_to_compact_identifier(url)
 
 
 def _person_to_string(person: Person) -> str:
@@ -877,13 +863,13 @@ def _write_model_csv(model: QualModel, output_path: str):
         writer.writerows(rows)
 
 
-def _write_species_csv(model: QualModel, output_path: str, use_name: bool = False, name_dedup_map: Dict[str, str] = None):
+def _write_species_csv(model: QualModel, output_path: str, use_name: bool = False, name_dedup_map: Dict[str, str] | None = None):
     """Write Species sheet to CSV"""
     # Determine max qualifiers and notes
     max_qualifiers = 0
     max_notes = 0
     for species in model.species.values():
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in species.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -914,7 +900,7 @@ def _write_species_csv(model: QualModel, output_path: str, use_name: bool = Fals
         row = [species.species_id, name_value]
         
         # Annotations
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in species.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []
@@ -932,8 +918,8 @@ def _write_species_csv(model: QualModel, output_path: str, use_name: bool = Fals
             species.compartment or "",
             species.type or "",
             str(species.constant) if species.constant is not None else "",
-            species.initial_level if species.initial_level is not None else "",
-            species.max_level if species.max_level is not None else ""
+            str(species.initial_level) if species.initial_level is not None else "",
+            str(species.max_level) if species.max_level is not None else ""
         ])
         
         for i in range(max_notes):
@@ -948,13 +934,13 @@ def _write_species_csv(model: QualModel, output_path: str, use_name: bool = Fals
 
 
 def _write_transitions_csv(model: QualModel, output_path: str, rule_format: str = "operators", 
-                          use_name: bool = False, name_dedup_map: Dict[str, str] = None):
+                          use_name: bool = False, name_dedup_map: Dict[str, str] | None = None):
     """Write Transitions sheet to CSV"""
     # Determine max qualifiers and notes
     max_qualifiers = 0
     max_notes = 0
     for transition in model.transitions:
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in transition.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -990,12 +976,12 @@ def _write_transitions_csv(model: QualModel, output_path: str, rule_format: str 
             transition.transition_id or "",
             transition.name or "",
             target_value,
-            transition.level if transition.level is not None else "",
+            str(transition.level) if transition.level is not None else "",
             rule
         ]
         
         # Annotations
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in transition.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []
@@ -1021,13 +1007,13 @@ def _write_transitions_csv(model: QualModel, output_path: str, rule_format: str 
 
 
 def _write_interactions_csv(model: QualModel, output_path: str, use_name: bool = False, 
-                           name_dedup_map: Dict[str, str] = None):
+                           name_dedup_map: Dict[str, str] | None = None):
     """Write Interactions sheet to CSV"""
     # Determine max qualifiers and notes
     max_qualifiers = 0
     max_notes = 0
     for interaction in model.interactions:
-        grouped = {}
+        grouped: Dict[str, list[str]] = {}
         for qualifier, identifier in interaction.annotations:
             if qualifier not in grouped:
                 grouped[qualifier] = []
@@ -1060,7 +1046,7 @@ def _write_interactions_csv(model: QualModel, output_path: str, use_name: bool =
         ]
         
         # Annotations
-        grouped_annos = {}
+        grouped_annos: Dict[str, list[str]] = {}
         for qualifier, identifier in interaction.annotations:
             if qualifier not in grouped_annos:
                 grouped_annos[qualifier] = []

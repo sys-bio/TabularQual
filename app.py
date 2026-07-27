@@ -318,8 +318,17 @@ with tab1:
                     else:
                         # CSV input - save files to temp directory
                         temp_dir = tempfile.mkdtemp()
+                        uploaded_names = set()
                         for csv_file in uploaded_csvs:
-                            file_path = os.path.join(temp_dir, csv_file.name)
+                            safe_name = os.path.basename(csv_file.name)
+                            if not safe_name or safe_name in {".", ".."}:
+                                raise ValueError("An uploaded CSV has an invalid filename")
+                            if safe_name in uploaded_names:
+                                raise ValueError(
+                                    f"Duplicate uploaded filename: {safe_name}"
+                                )
+                            uploaded_names.add(safe_name)
+                            file_path = os.path.join(temp_dir, safe_name)
                             with open(file_path, 'wb') as f:
                                 f.write(csv_file.getvalue())
                         input_path = temp_dir
@@ -417,7 +426,7 @@ with tab1:
                     for f in temp_files_to_cleanup:
                         try:
                             os.unlink(f)
-                        except:
+                        except OSError:
                             pass
                     gc.collect()
                     
@@ -543,7 +552,12 @@ with tab2:
                     if output_csv:
                         # CSV output - use temp directory
                         temp_dir = tempfile.mkdtemp()
-                        output_prefix = os.path.join(temp_dir, output_filename or original_name)
+                        output_stem = os.path.basename(
+                            output_filename or original_name
+                        ).strip()
+                        if output_stem in {"", ".", ".."}:
+                            output_stem = "model"
+                        output_prefix = os.path.join(temp_dir, output_stem)
                         
                         # Perform conversion
                         result = convert_sbml_to_spreadsheet(
@@ -754,7 +768,7 @@ with tab2:
                     for f in temp_files_to_cleanup:
                         try:
                             os.unlink(f)
-                        except:
+                        except OSError:
                             pass
                     gc.collect()
                     

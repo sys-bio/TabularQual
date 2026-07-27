@@ -50,8 +50,6 @@ def _check_input_exists(input_path: str) -> bool:
 def _get_output_name(input_path: str, new_extension: str) -> str:
     """Generate output filename based on input, replacing or adding extension."""
     p = Path(input_path)
-    # Remove known extensions, keep the base name
-    stem = p.stem
     # For CSV prefix input (no extension), use the name directly
     if p.suffix.lower() in ('.xlsx', '.xls', '.sbml', '.xml', '.csv'):
         return str(p.with_suffix(new_extension))
@@ -105,7 +103,7 @@ def to_sbml_entry(input_path: str, output_sbml: str | None, inter_anno: bool, tr
 @click.option("--csv", "output_csv", is_flag=True, default=False, help="Output as CSV files instead of XLSX")
 @click.option("--no-validate", is_flag=True, default=False, help="Skip SBML annotation validation")
 @click.option("--use-name", "use_name", is_flag=True, default=False, help="Use Species Name instead of ID in rules and interactions. Default: use ID.")
-def to_table_entry(input_sbml: str, output_path: str | None, template_xlsx: str = None, colon_format: bool = False, output_csv: bool = False, no_validate: bool = False, use_name: bool = False):
+def to_table_entry(input_sbml: str, output_path: str | None, template_xlsx: str | None = None, colon_format: bool = False, output_csv: bool = False, no_validate: bool = False, use_name: bool = False):
     """Convert SBML to spreadsheet (XLSX or CSV).
     
     INPUT_SBML: Input SBML file
@@ -129,7 +127,7 @@ def to_table_entry(input_sbml: str, output_path: str | None, template_xlsx: str 
     
     created_files = result['created_files']
     if output_csv:
-        click.echo(f"Wrote CSV files:")
+        click.echo("Wrote CSV files:")
         for f in created_files:
             click.echo(f"  - {f}")
     else:

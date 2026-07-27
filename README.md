@@ -2,7 +2,7 @@
 
 Convert between spreadsheets (XLSX, CSV) and SBML-qual for logical models (Boolean and multi-valued).
 
-![TabularQual](doc/tabularqual.png "Example TabularQual spreadsheet representation of a Boolean model")
+![TabularQual](https://raw.githubusercontent.com/sys-bio/TabularQual/main/doc/tabularqual.png "Example TabularQual spreadsheet representation of a Boolean model")
 
 Note: the format is specified [here](https://docs.google.com/document/d/1RCIN4bOsw4Uq9X2I-gdfBXDydyViYzaVhQK8cpdEWhA/edit?usp=sharing).
 
@@ -19,8 +19,14 @@ Or install from source:
 ```bash
 git clone https://github.com/sys-bio/TabularQual.git
 cd TabularQual
-pip install -e .
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
 ```
+
+Python 3.11 or newer is required. For the optional FastAPI server, install
+`.[api]`; for release development, install `.[test,release,api]`.
 
 ---
 
@@ -68,7 +74,7 @@ Both functions return a stats dict:
 }
 ```
 
-See [`python_api_example.py`](python_api_example.py) for a working example covering multi-valued models and other options.
+See [`python_api_example.py`](https://github.com/sys-bio/TabularQual/blob/main/python_api_example.py) for a working example covering multi-valued models and other options.
 
 #### CLI
 
@@ -131,13 +137,13 @@ The spreadsheet consists of up to four sheets. Sheet names and column headers mu
 
 Additional sheets (e.g. README, Appendix) and columns are silently ignored.
 
-See the [specification](https://docs.google.com/document/d/1RCIN4bOsw4Uq9X2I-gdfBXDydyViYzaVhQK8cpdEWhA/edit?usp=sharing), the [template spreadsheet](doc/template.xlsx) and [examples/](examples/) for details.
+See the [specification](https://docs.google.com/document/d/1RCIN4bOsw4Uq9X2I-gdfBXDydyViYzaVhQK8cpdEWhA/edit?usp=sharing), the [template spreadsheet](https://github.com/sys-bio/TabularQual/raw/main/doc/template.xlsx) and [examples](https://github.com/sys-bio/TabularQual/tree/main/examples) for details.
 
 ---
 
 ### Transition Rules Syntax
 
-The `Rule` column accepts Boolean and comparison expressions; spaces are ignored during parsing. See [doc/transition_rule_syntax.md](doc/transition_rule_syntax.md) for full details including operator precedence and multi-valued model conventions.
+The `Rule` column accepts Boolean and comparison expressions; spaces are ignored during parsing. See [the transition-rule syntax guide](https://github.com/sys-bio/TabularQual/blob/main/doc/transition_rule_syntax.md) for full details including operator precedence and multi-valued model conventions.
 
 | Symbol | Meaning | Example |
 |--------|---------|---------|
@@ -227,6 +233,9 @@ All values are accepted case-insensitively and normalised to their canonical for
 
 Compact identifiers (`prefix:accession`, e.g. `uniprot:P19838`) are resolved to `https://identifiers.org/` URLs in SBML. Optionally validate that identifiers actually exist through `sbmlutils`:
 
+Common ChEBI variants such as `chebi:35305` are normalized to the canonical
+`CHEBI:35305` form before validation.
+
 ```bash
 pip install sbmlutils>=0.9.6
 # then run without --no-validate (the default)
@@ -238,7 +247,7 @@ pip install sbmlutils>=0.9.6
 
 | File | Description |
 |------|-------------|
-| [`examples/ToyExample.xlsx`](examples/ToyExample.xlsx) | Small Boolean model |
-| [`examples/ToyExample_multivalue.xlsx`](examples/ToyExample_multivalue.xlsx) | Multi-valued variant of the toy model |
-| [`examples/Faure2006/Faure2006.xlsx`](examples/Faure2006/Faure2006.xlsx) | Fauré 2006 mammalian cell-cycle (Boolean) |
-| [`examples/ThieffryThomas1995/ThieffryThomas1995_multivalue.xlsx`](examples/ThieffryThomas1995/ThieffryThomas1995_multivalue.xlsx) | Thieffry & Thomas 1995 λ phage (multi-valued) |
+| [`examples/ToyExample.xlsx`](https://github.com/sys-bio/TabularQual/raw/main/examples/ToyExample.xlsx) | Small Boolean model |
+| [`examples/ToyExample_multivalue.xlsx`](https://github.com/sys-bio/TabularQual/raw/main/examples/ToyExample_multivalue.xlsx) | Multi-valued variant of the toy model |
+| [`examples/Faure2006/Faure2006.xlsx`](https://github.com/sys-bio/TabularQual/raw/main/examples/Faure2006/Faure2006.xlsx) | Fauré 2006 mammalian cell-cycle (Boolean) |
+| [`examples/ThieffryThomas1995/ThieffryThomas1995_multivalue.xlsx`](https://github.com/sys-bio/TabularQual/raw/main/examples/ThieffryThomas1995/ThieffryThomas1995_multivalue.xlsx) | Thieffry & Thomas 1995 λ phage (multi-valued) |

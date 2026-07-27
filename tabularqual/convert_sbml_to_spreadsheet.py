@@ -9,16 +9,16 @@ from .tools import validate_sbml_file
 
 
 def get_default_template_path() -> str | None:
-    """Find the default template.xlsx in the doc/ directory.
+    """Find the packaged default spreadsheet template.
     
     Returns:
         Path to template.xlsx if it exists, otherwise None.
     """
-    template = Path(__file__).parent.parent / "doc" / "template.xlsx"
+    template = Path(__file__).parent / "data" / "template.xlsx"
     return str(template) if template.exists() else None
 
 
-def convert_sbml_to_spreadsheet(sbml_path: str, output_path: str, template_path: str = None, rule_format: str = "operators", output_csv: bool = False, print_messages: bool = True, validate: bool = True, use_name: bool = False) -> dict:
+def convert_sbml_to_spreadsheet(sbml_path: str, output_path: str, template_path: str | None = None, rule_format: str = "operators", output_csv: bool = False, print_messages: bool = True, validate: bool = True, use_name: bool = False) -> dict:
     """
     Convert an SBML-qual file to SpreadSBML spreadsheet format (XLSX or CSV).
     
@@ -47,7 +47,12 @@ def convert_sbml_to_spreadsheet(sbml_path: str, output_path: str, template_path:
         max_errors = 10 if print_messages else None
         validation_result = validate_sbml_file(sbml_path, max_errors=max_errors, print_messages=print_messages)
     else:
-        validation_result = {'errors': [], 'total_errors': 0}
+        validation_result = {
+            'warnings': [],
+            'errors': [],
+            'total_errors': 0,
+            'validation_run': False,
+        }
     
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
@@ -109,4 +114,3 @@ def convert_sbml_to_spreadsheet(sbml_path: str, output_path: str, template_path:
         'validation_errors': validation_result.get('errors', []),
         'total_validation_errors': validation_result.get('total_errors', 0),
     }
-

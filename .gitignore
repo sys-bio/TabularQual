@@ -2,9 +2,13 @@ __pycache__/
 .conda/
 .venv/
 .DS_Store
-tabularqual.egg-info/
+*.egg-info/
 ~*
 test/*/
+build/
 dist/
 ref/
 notes.txt
+.mypy_cache/
+.pytest_cache/
+.coverage

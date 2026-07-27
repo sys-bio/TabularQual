@@ -107,7 +107,12 @@ def convert_spreadsheet_to_sbml(input_path: str, output_sbml: str, *, interactio
         max_errors = 10 if print_messages else None
         validation_result = validate_sbml_file(output_sbml, max_errors=max_errors, print_messages=print_messages)
     else:
-        validation_result = {'errors': [], 'total_errors': 0}
+        validation_result = {
+            'warnings': [],
+            'errors': [],
+            'total_errors': 0,
+            'validation_run': False,
+        }
     
     # Add validation results to stats for app display
     stats['validation_errors'] = validation_result.get('errors', [])

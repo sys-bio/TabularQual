@@ -7,8 +7,9 @@ import libsbml
 import gc
 
 from . import spec
-from .types import QualModel, Species as SpeciesT, Transition as TransitionT, InteractionEvidence
+from .types import QualModel, Species as SpeciesT, Transition as TransitionT
 from .expr_parser import parse as parse_expr, ast_to_mathml
+from .identifiers import to_identifiers_url
 
 
 def _resolve_name_to_id(name_or_id: str, species: Dict[str, SpeciesT]) -> str:
@@ -63,7 +64,7 @@ def _resolve_rule_names_to_ids(rule: str, species: Dict[str, SpeciesT]) -> str:
     result = rule
     
     # Create mappings from name to IDs (handling duplicates)
-    name_to_ids_map = {}  # name -> list of (sid, occurrence)
+    name_to_ids_map: Dict[str, List[Tuple[str, int]]] = {}
     for sid, sp in species.items():
         if sp.name:
             if sp.name not in name_to_ids_map:
@@ -347,9 +348,9 @@ def write_sbml(model: QualModel, *, interactions_anno: bool = True, transitions_
                     ft = qt.createFunctionTerm()
                     ft.setResultLevel(level)
                     if const_level == 0:
-                        mathml = f"<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><false/></math>"
+                        mathml = "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><false/></math>"
                     else:
-                        mathml = f"<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><true/></math>"
+                        mathml = "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><true/></math>"
                     _set_mathml(ft, mathml)
                 else:
                     # Normal rule - parse and convert to MathML
@@ -409,15 +410,15 @@ def write_sbml(model: QualModel, *, interactions_anno: bool = True, transitions_
                         found_input.setTransitionEffect(_qual_enum("QUAL_TRANSITION_EFFECT_NONE", 0))
                     # Always set sign from Interactions sheet
                     if inter.sign:
-                        s = (inter.sign or "").strip().lower()
+                        normalized_sign = (inter.sign or "").strip().lower()
                         try:
-                            if s == "positive":
+                            if normalized_sign == "positive":
                                 found_input.setSign(_qual_enum("QUAL_SIGN_POSITIVE", 0))
-                            elif s == "negative":
+                            elif normalized_sign == "negative":
                                 found_input.setSign(_qual_enum("QUAL_SIGN_NEGATIVE", 1))
-                            elif s == "dual":
+                            elif normalized_sign == "dual":
                                 found_input.setSign(_qual_enum("QUAL_SIGN_DUAL", 2))
-                            elif s == "unknown":
+                            elif normalized_sign == "unknown":
                                 found_input.setSign(_qual_enum("QUAL_SIGN_UNKNOWN", 3))
                             else:
                                 _append_notes(found_input, [f"Sign: {inter.sign}"])
@@ -736,31 +737,7 @@ def _to_identifiers_url(identifier: str) -> str:
     - DOI format (doi:10.xxx) -> https://identifiers.org/doi:10.xxx
     - Plain strings -> https://identifiers.org/{string}
     """
-    s = identifier.strip()
-    if not s:
-        return s
-    
-    # Check if it's already a full URL (http/https/ftp) or URN - keep as-is
-    if s.startswith(("http://", "https://", "ftp://", "urn:")):
-        return s
-    
-    # Check if it's a compact identifier with slash (e.g., ncbigene/7132)
-    # Convert to colon format before creating URL
-    if "/" in s and ":" not in s:
-        # Convert first slash to colon
-        s = s.replace("/", ":", 1)
-    
-    # Check if it's a compact identifier (prefix:accession pattern)
-    if ":" in s and not s.startswith(":"):
-        first_colon_pos = s.find(":")
-        if first_colon_pos > 0:
-            prefix = s[:first_colon_pos]
-            accession = s[first_colon_pos + 1:]
-
-            if prefix and accession:
-                return f"https://identifiers.org/{s}"
-    
-    return f"https://identifiers.org/{s}"
+    return to_identifiers_url(identifier)
 
 
 def _collect_ids_from_ast(ast) -> List[str]:
