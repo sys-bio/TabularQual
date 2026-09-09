@@ -12,14 +12,11 @@ license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["SBML", "SBML-qual", "logical models", "systems biology", "spreadsheet"]
 dependencies = [
-    "python-libsbml>=5.21.0",
+    "python-libsbml>=5.21.1",
     "openpyxl>=3.1.5",
-    "packaging>=24.0",
     "click>=8.1.8",
     "python-dateutil>=2.9.0",
-    "streamlit>=1.28.0",
-    "pandas>=2.0.0",
-    "sbmlutils>=0.9.6",
+    "sbmlutils>=0.10.2",
 ]
 authors = [
     {name = "Luna Li", email = "lixy@uw.edu"},
@@ -33,10 +30,15 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
 [project.optional-dependencies]
+app = [
+    "streamlit>=1.28.0",
+    "pandas>=2.2.0",
+]
 api = [
     "fastapi>=0.115.0",
     "python-multipart>=0.0.20",

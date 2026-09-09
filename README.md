@@ -25,8 +25,20 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Python 3.11 or newer is required. For the optional FastAPI server, install
-`.[api]`; for release development, install `.[test,release,api]`.
+Python 3.11 or newer is required. The core package (CLI and Python API) has no
+Streamlit dependency. Optional extras:
+
+| Extra | Installs | Needed for |
+|-------|----------|------------|
+| `app` | streamlit, pandas | local Streamlit web app (`streamlit run app.py`) |
+| `api` | fastapi, uvicorn, python-multipart | FastAPI server |
+| `test` | pytest, mypy, flake8, httpx | running tests |
+
+```bash
+python -m pip install -e ".[app]"          # web app
+python -m pip install -e ".[app,api]"      # web app + REST API
+python -m pip install -e ".[test,release,api,app]"   # release development
+```
 
 ---
 
@@ -40,8 +52,10 @@ No installation required — open in your browser:
 
 **[Launch Web App](https://tabularqual.streamlit.app/)**
 
-> For large networks the Streamlit cloud may hit resource limits. Run locally instead:
+> For large networks the Streamlit cloud may hit resource limits. Run locally instead
+> (requires the `app` extra, see [Install](#install)):
 > ```bash
+> python -m pip install -e ".[app]"
 > streamlit run app.py
 > ```
 
@@ -237,7 +251,7 @@ Common ChEBI variants such as `chebi:35305` are normalized to the canonical
 `CHEBI:35305` form before validation.
 
 ```bash
-pip install sbmlutils>=0.9.6
+pip install sbmlutils>=0.10.2
 # then run without --no-validate (the default)
 ```
 
