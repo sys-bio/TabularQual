@@ -318,11 +318,14 @@ def write_sbml(model: QualModel, *, interactions_anno: bool = True, transitions_
                 ast = parse_expr(rule, known_species_ids)
                 all_species_ids.update(_collect_ids_from_ast(ast))
             
-            # Filter out IDs that don't correspond to actual species
-            valid_species_ids = [sid for sid in all_species_ids if sid in model.species]
-            
-            # Create inputs only for valid species references
-            for sid in sorted(valid_species_ids):
+            unknown = sorted(all_species_ids - known_species_ids)
+            if unknown:
+                raise ValueError(
+                    f"Transition '{qt.getId()}' references unknown species: {', '.join(unknown)}"
+                )
+
+            # Create inputs for every species the rules reference
+            for sid in sorted(all_species_ids):
                 inp = qt.createInput()
                 inp.setQualitativeSpecies(sid)
                 if not inp.isSetMetaId():

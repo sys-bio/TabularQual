@@ -297,6 +297,8 @@ def _resolve_rule_with_fallback(rule: str, species: Dict[str, Species], name_to_
     valid_sid_pattern = r'\b([A-Za-z_][A-Za-z0-9_]*)\b'
     # Invalid ID pattern (contains special chars but starts with letter/underscore)
     invalid_id_pattern = r'\b([A-Za-z_][A-Za-z0-9_/\\:\-\.\s]+?)(?=\s|\)|\(|,|$|\band\b|\bor\b|\bnot\b)'
+    # Digit-leading ids such as 2A. Must contain a letter so bare numbers stay literals.
+    digit_lead_pattern = r'(?<![A-Za-z0-9_])(\d+[A-Za-z_][A-Za-z0-9_/\\:\-\.]*)'
     
     # Find all matches (quoted and unquoted)
     matches = []
@@ -318,6 +320,17 @@ def _resolve_rule_with_fallback(rule: str, species: Dict[str, Species], name_to_
             from .tools import is_valid_sid
             if not is_valid_sid(ref):
                 invalid_matches.append((match.start(), match.end(), ref, False))
+
+    # Digit-leading ids are invisible to the patterns above (both require a letter first).
+    for match in re.finditer(digit_lead_pattern, rule):
+        in_quotes = any(start <= match.start() < end for start, end, _, _ in matches)
+        in_invalid = any(start <= match.start() < end for start, end, _, _ in invalid_matches)
+        if in_quotes or in_invalid:
+            continue
+        ref = match.group(1).strip()
+        from .tools import is_valid_sid
+        if not is_valid_sid(ref):
+            invalid_matches.append((match.start(), match.end(), ref, False))
     
     # Find valid SId identifiers (but skip those already in quotes or invalid IDs)
     for match in re.finditer(valid_sid_pattern, rule):
@@ -415,7 +428,7 @@ def _resolve_rule_with_fallback(rule: str, species: Dict[str, Species], name_to_
             ref_to_resolve = f'"{lookup_ref}"' if is_quoted else lookup_ref
             resolved, _ = _resolve_with_fallback(
                 ref_to_resolve, species, name_to_id, name_counts, name_occurrence_map,
-                actual_use_name, [], f"{context} (rule reference '{ref}')", warn_on_switch=False
+                actual_use_name, validation_warnings, f"{context} (rule reference '{ref}')", warn_on_switch=False
             )
 
             # Store replacement (we'll apply them in reverse order)
